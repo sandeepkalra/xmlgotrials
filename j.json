@@ -1,0 +1,19 @@
+   {                                                                                               
+        "nodes": [
+            {"id":"000", "name":"age", "value":"18", "nodes":[]},
+            {"id":"001", "name":"person", "value": "sandeep", "nodes":[]},
+            {"id":"002", "name":"person", "attribute":"super=user", "value": "kalra", "nodes":[]},
+            {"id":"003", "name":"people", "nodes":["001","002"]}                                    
+        ],                                                                                          
+        "insert": [                                                                                 
+            {"xpath": "/xml/zero", "nodes":["003","008"]},                                                
+            {"xpath": "/xml/zero/person", "nodes":["000", "002", "003"]}
+		],
+        "delete": [    
+            {"xpath":"/xml/zero"}
+        ],                                                                                          
+        "update": [  
+            {"xpath": "/xml/zero", "value":"00", "attribute":"new=attri"},
+            {"xpath": "/xml/zero[@new='attri']/p", "value":"11"}                                                                           
+        ]                                                                                           
+    }        
