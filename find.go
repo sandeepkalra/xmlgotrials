@@ -15,11 +15,11 @@ func Check(e error) {
 	}
 }
 
-type Node struct {
+type FindNode struct {
 	XMLName xml.Name
 	Attrs   []xml.Attr `xml:"-"`
 	Content []byte     `xml:",innerxml"`
-	Nodes   []Node     `xml:",any"`
+	Nodes   []FindNode     `xml:",any"`
 }
 
 const (
@@ -71,7 +71,7 @@ func find(path string) {
 			if xpath[0] == tok.Name.Local {
 				fmt.Println("--node-->", tok.Name.Local)
 				var start xml.StartElement
-				var node Node
+				var node FindNode
 				err := dec.DecodeElement(&node, &start)
 				Check(err)
 
