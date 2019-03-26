@@ -34,7 +34,8 @@ type DeleteReq struct {
 //UpdateReq is UpdateReq
 type UpdateReq struct {
 	XPath     string  `json:"xpath"`
-	Value     string  `json:"value"`
+	Value     *string `json:"value,omitempty"`
+	Replace   *string `json:"replace,omitempty"`
 	Attribute *string `json:"attribute,omitempty"`
 }
 
@@ -123,7 +124,19 @@ func update(j []UpdateReq, xmlFile string) {
 					elem.CreateAttr(keyVal[0], keyVal[1])
 				}
 			}
-			elem.SetText(update.Value)
+			if update.Value != nil {
+				elem.SetText(*update.Value)
+			}
+			if update.Replace != nil {
+				vals := strings.Split(*update.Replace, "=")
+				if len(vals) > 1 {
+					text := elem.Text()
+					if strings.Contains(text, vals[0]) {
+						newText := strings.Replace(text, vals[0], vals[1], -1)
+						elem.SetText(newText)
+					}
+				}
+			}
 		}
 	}
 	doc.Indent(2)

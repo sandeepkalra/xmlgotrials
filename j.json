@@ -13,7 +13,7 @@
             {"xpath":"/xml/zero"}
         ],                                                                                          
         "update": [  
-            {"xpath": "/xml/zero", "value":"00", "attribute":"new=attri"},
+            {"xpath": "/xml/zero/p", "replace":"Sandeep=attri"},
             {"xpath": "/xml/zero[@new='attri']/p", "value":"11"}                                                                           
         ]                                                                                           
     }        
