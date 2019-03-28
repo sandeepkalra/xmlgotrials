@@ -138,8 +138,10 @@ func update(j []UpdateReq, xmlFile string) {
 			for k := i + 1; k < len(j); k++ {
 				newJ = append(newJ, j[k])
 			}
+		} else {
+			updateReqs(j, xmlFile)
+			return
 		}
-
 	}
 	/* Now call The regular Update */
 	updateReqs(newJ, xmlFile)
