@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/beevik/etree"
@@ -103,16 +105,55 @@ func insert(j []InsertReq, xmlFile string) {
 		}
 	}
 	doc.Indent(2)
-	doc.WriteTo(os.Stdout)
-	doc.WriteToFile(xmlFile)
+	//doc.WriteTo(os.Stdout)
+	//doc.WriteToFile(xmlFile)
 }
 
+// update wraps around updateReqs, but take care of special range handling
+// i.e. xpath ending with [a..b] case, where a,b are upper and lower bound
+// of the array of elements.
+
 func update(j []UpdateReq, xmlFile string) {
+	var newJ []UpdateReq
+	for i, u := range j {
+		r := regexp.MustCompile("\\w*\\[([0-9]+)..([0-9]+)\\]")
+		if r != nil && r.MatchString(u.XPath) {
+			subStr := r.FindStringSubmatch(u.XPath)
+			removeSuffix := "[" + subStr[1] + ".." + subStr[2] + "]"
+			u.XPath = strings.Split(u.XPath, removeSuffix)[0]
+			subStr = subStr[1:]
+			low, _ := strconv.Atoi(subStr[0])
+			high, _ := strconv.Atoi(subStr[1])
+			if low > high {
+				fmt.Println("invalid Json params range")
+				return
+			}
+			// we need to strip out this xpath, and insert new once here.
+			newJ = append(newJ, j[:i]...)
+			path := u.XPath
+			for k := low; k <= high; k++ {
+				u.XPath = path + "[" + strconv.Itoa(k) + "]"
+				newJ = append(newJ, u)
+			}
+			for k := i + 1; k < len(j); k++ {
+				newJ = append(newJ, j[k])
+			}
+		}
+
+	}
+	/* Now call The regular Update */
+	updateReqs(newJ, xmlFile)
+}
+
+//This was the original update request. It is now
+// called from update() function that wraps a special
+// case first.
+func updateReqs(j []UpdateReq, xmlFile string) {
+
 	doc := etree.NewDocument()
 	if err := doc.ReadFromFile(xmlFile); err != nil {
 		panic(err)
 	}
-
 	for _, update := range j {
 		pathOfElem := etree.MustCompilePath(update.XPath)
 		elem := doc.FindElementPath(pathOfElem)
@@ -124,9 +165,11 @@ func update(j []UpdateReq, xmlFile string) {
 					elem.CreateAttr(keyVal[0], keyVal[1])
 				}
 			}
+
 			if update.Value != nil {
 				elem.SetText(*update.Value)
 			}
+
 			if update.Replace != nil {
 				vals := strings.Split(*update.Replace, "=")
 				if len(vals) > 1 {
@@ -139,8 +182,11 @@ func update(j []UpdateReq, xmlFile string) {
 			}
 		}
 	}
-	doc.Indent(2)
+
+	doc.Indent(1)
+	fmt.Println("=====")
 	doc.WriteTo(os.Stdout)
+	fmt.Println("=====")
 	// doc.WriteToFile(xmlFile)
 }
 
@@ -165,7 +211,8 @@ func delete(j []DeleteReq, xmlFile string) {
 	}
 	doc.Indent(2)
 	// doc.WriteTo(os.Stdout)
-	doc.WriteToFile(xmlFile)
+
+	//doc.WriteToFile(xmlFile)
 }
 
 func main() {
